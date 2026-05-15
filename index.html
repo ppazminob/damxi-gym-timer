@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2563eb">
+
+<title>DAMXI GYM TIMER PRO XXXXXXXX</title>
+
+<style>
+
+body{
+    margin:0;
+    background:#020617;
+    color:white;
+    font-family:Arial,sans-serif;
+    text-align:center;
+}
+
+.container{
+    max-width:430px;
+    margin:auto;
+    padding:18px;
+}
+
+h1{
+    font-size:28px;
+    margin:10px 0 4px;
+}
+
+.subtitle{
+    color:#94a3b8;
+    margin-bottom:14px;
+}
+
+.card{
+    background:#1e293b;
+    border-radius:22px;
+    padding:18px;
+    margin-bottom:16px;
+    box-shadow:0 10px 25px rgba(0,0,0,.4);
+}
+
+label,.label{
+    display:block;
+    color:#cbd5e1;
+    margin-top:10px;
+    font-size:16px;
+}
+
+select,input,button{
+    width:100%;
+    box-sizing:border-box;
+    padding:14px;
+    margin-top:9px;
+    border:0;
+    border-radius:14px;
+    font-size:18px;
+}
+
+button{
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.start{background:#22c55e;color:white;}
+.rep{
+    background:#2563eb;
+    color:white;
+    height:120px;
+    font-size:42px;
+}
+.pause{background:#f59e0b;color:white;}
+.reset{background:#ef4444;color:white;}
+.pro{background:#7c3aed;color:white;}
+
+.big{
+    font-size:70px;
+    font-weight:bold;
+    margin:6px 0;
+}
+
+.status{
+    font-size:25px;
+    font-weight:bold;
+    color:#38bdf8;
+}
+
+.descanso{color:#fbbf24;}
+.finalizado{color:#22c55e;}
+
+.respiracion{
+    font-size:30px;
+    font-weight:bold;
+    color:#a78bfa;
+}
+
+.small{
+    color:#94a3b8;
+    font-size:14px;
+}
+
+.hidden{
+    display:none;
+}
+
+.row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+}
+
+.historial{
+    text-align:left;
+    font-size:14px;
+    color:#e5e7eb;
+    max-height:180px;
+    overflow:auto;
+}
+
+.ok{color:#22c55e;}
+.bad{color:#ef4444;}
+
+.kpi{
+    background:#0f172a;
+    border-radius:14px;
+    padding:12px;
+}
+
+.kpi-title{
+    color:#94a3b8;
+    font-size:13px;
+}
+
+.kpi-value{
+    font-size:28px;
+    font-weight:bold;
+    margin-top:6px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>DAMXI GYM TIMER PRO V5</h1>
+<div class="subtitle">
+Coach · KPI · Historial · Activación
+</div>
+
+<div id="pantallaActivacion" class="card hidden">
+
+    <h2>Activación PRO</h2>
+
+    <div class="small">
+        Ingrese código de activación
+    </div>
+
+    <input id="codigo" placeholder="Código">
+
+    <button class="pro" onclick="activar()">
+        ACTIVAR
+    </button>
+
+    <p id="msgActivacion"></p>
+
+</div>
+
+<div id="app" class="hidden">
+
+    <div class="card">
+
+        <label>Rutina</label>
+
+        <select id="rutina" onchange="cargarRutina()">
+            <option value="personal">Personalizada</option>
+            <option value="fuerza">Fuerza 4x12</option>
+            <option value="volumen">Volumen 5x10</option>
+            <option value="ligero">Ligero 3x15</option>
+            <option value="hiit">HIIT 4x10</option>
+        </select>
+
+        <div class="row">
+
+            <div>
+                <label>Reps</label>
+
+                <select id="reps">
+                    <option value="10">10</option>
+                    <option value="12" selected>12</option>
+                    <option value="15">15</option>
+                </select>
+            </div>
+
+            <div>
+                <label>Series</label>
+
+                <select id="series">
+                    <option value="3">3</option>
+                    <option value="4" selected>4</option>
+                    <option value="5">5</option>
+                </select>
+            </div>
+
+        </div>
+
+        <label>Descanso</label>
+
+        <select id="descanso">
+            <option value="30">30 seg</option>
+            <option value="60" selected>60 seg</option>
+            <option value="90">90 seg</option>
+        </select>
+
+        <label>Voz Coach</label>
+
+        <select id="voz">
+            <option value="si" selected>Activada</option>
+            <option value="no">Desactivada</option>
+        </select>
+
+    </div>
+
+    <div class="card">
+
+        <div id="estado" class="status">
+            LISTO
+        </div>
+
+        <div class="label">SERIE</div>
+
+        <div id="serieActual" class="big">
+            1
+        </div>
+
+        <div class="label">REP / DESCANSO</div>
+
+        <div id="contador" class="big">
+            0
+        </div>
+
+        <div id="respiracion" class="respiracion">
+            RESPIRAR
+        </div>
+
+        <div class="small">
+            Inhale al preparar · Exhale al ejecutar
+        </div>
+
+    </div>
+
+    <button class="start" onclick="iniciar()">
+        INICIAR
+    </button>
+
+    <button class="rep" onclick="sumarRep()">
+        REP
+    </button>
+
+    <div class="card">
+        <h3>SMART MODE</h3>
+
+        <label>Sensor movimiento</label>
+        <select id="smartMode">
+            <option value="off" selected>Desactivado</option>
+            <option value="on">Activado</option>
+        </select>
+
+        <label>Sensibilidad</label>
+        <select id="sensibilidad">
+            <option value="18">Baja</option>
+            <option value="14" selected>Media</option>
+            <option value="10">Alta</option>
+        </select>
+
+        <button class="pro" onclick="activarSensor()">
+            ACTIVAR SENSOR
+        </button>
+
+        <div class="small" id="sensorEstado">
+            Sensor apagado
+        </div>
+
+        <div class="small" id="sensorDebug">
+            X: 0 | Y: 0 | Z: 0 | M: 0
+        </div>
+
+    </div>    
+
+    <button class="pause" onclick="pausar()">
+        PAUSAR
+    </button>
+
+    <button class="reset" onclick="reiniciar()">
+        RESET
+    </button>
+
+    <div class="card">
+
+        <h3>Dashboard KPI</h3>
+
+        <div class="row">
+
+            <div class="kpi">
+                <div class="kpi-title">
+                    Rutinas
+                </div>
+
+                <div id="kpiRutinas" class="kpi-value">
+                    0
+                </div>
+            </div>
+
+            <div class="kpi">
+                <div class="kpi-title">
+                    Repeticiones
+                </div>
+
+                <div id="kpiReps" class="kpi-value">
+                    0
+                </div>
+            </div>
+
+        </div>
+
+        <div class="row">
+
+            <div class="kpi">
+                <div class="kpi-title">
+                    Series
+                </div>
+
+                <div id="kpiSeries" class="kpi-value">
+                    0
+                </div>
+            </div>
+
+            <div class="kpi">
+                <div class="kpi-title">
+                    Minutos
+                </div>
+
+                <div id="kpiMinutos" class="kpi-value">
+                    0
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="card">
+
+        <h3>Historial</h3>
+
+        <div id="historial" class="historial"></div>
+
+        <button class="pro" onclick="exportarHistorial()">
+            EXPORTAR HISTORIAL
+        </button>
+
+        <button class="reset" onclick="borrarHistorial()">
+            BORRAR HISTORIAL
+        </button>
+
+    </div>
+
+</div>
+
+</div>
+
+<script>
+
+const CODIGO_ACTIVACION = "DAMXI-GYM-2026";
+
+let repsObjetivo = 12;
+let seriesObjetivo = 4;
+let descansoObjetivo = 60;
+
+let serie = 1;
+let rep = 0;
+let descanso = 0;
+
+let inicioRutina = null;
+
+let rutinaIniciada = false;
+let enDescanso = false;
+let pausado = false;
+
+let timer = null;
+
+let sensorActivo = false;
+let ultimoMovimiento = 0;
+let tiempoBloqueoMovimiento = 700;
+
+window.onload = function(){
+
+    if(localStorage.getItem("damxi_gym_activado")==="SI"){
+
+        mostrarApp();
+
+    }else{
+
+        document.getElementById("pantallaActivacion")
+            .classList.remove("hidden");
+    }
+};
+
+function activar(){
+
+    const codigo =
+        document.getElementById("codigo").value.trim();
+
+    if(codigo===CODIGO_ACTIVACION){
+
+        localStorage.setItem("damxi_gym_activado","SI");
+
+        mostrarApp();
+
+    }else{
+
+        document.getElementById("msgActivacion")
+            .innerHTML="<span class='bad'>Código incorrecto</span>";
+    }
+}
+
+function mostrarApp(){
+
+    document.getElementById("pantallaActivacion")
+        .classList.add("hidden");
+
+    document.getElementById("app")
+        .classList.remove("hidden");
+
+    mostrarHistorial();
+    actualizarKPI();
+}
+
+function cargarRutina(){
+
+    const r = document.getElementById("rutina").value;
+
+    if(r==="fuerza"){
+        setValores(12,4,60);
+    }
+    else if(r==="volumen"){
+        setValores(10,5,60);
+    }
+    else if(r==="ligero"){
+        setValores(15,3,45);
+    }
+    else if(r==="hiit"){
+        setValores(10,4,30);
+    }
+}
+
+function setValores(reps,series,desc){
+
+    document.getElementById("reps").value=reps;
+    document.getElementById("series").value=series;
+    document.getElementById("descanso").value=desc;
+}
+
+function hablar(texto){
+
+    if(document.getElementById("voz").value!=="si") return;
+
+    if(!("speechSynthesis" in window)) return;
+
+    const msg = new SpeechSynthesisUtterance(texto);
+
+    msg.lang="es-ES";
+    msg.rate=0.95;
+
+    speechSynthesis.cancel();
+    speechSynthesis.speak(msg);
+}
+
+function beep(freq=800,dur=120){
+
+    const ctx =
+        new(window.AudioContext||window.webkitAudioContext)();
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.frequency.value=freq;
+
+    gain.gain.setValueAtTime(0.18,ctx.currentTime);
+
+    osc.start();
+    osc.stop(ctx.currentTime + dur/1000);
+}
+
+function vibrar(ms=100){
+
+    if(navigator.vibrate)
+        navigator.vibrate(ms);
+}
+
+function estado(txt,clase){
+
+    const e = document.getElementById("estado");
+
+    e.innerText=txt;
+    e.className=clase;
+}
+
+function actualizarPantalla(){
+
+    document.getElementById("serieActual").innerText=serie;
+
+    if(enDescanso){
+
+        estado("DESCANSO","status descanso");
+
+        document.getElementById("contador")
+            .innerText=descanso;
+
+        document.getElementById("respiracion")
+            .innerText="RECUPERAR";
+
+    }else if(!rutinaIniciada){
+
+        estado("LISTO","status");
+
+        document.getElementById("contador")
+            .innerText=rep;
+
+        document.getElementById("respiracion")
+            .innerText="RESPIRAR";
+
+    }else{
+
+        estado("SERIE EN CURSO","status");
+
+        document.getElementById("contador")
+            .innerText=rep;
+
+        document.getElementById("respiracion")
+            .innerText=rep%2===0 ? "INHALE":"EXHALE";
+    }
+}
+
+function iniciar(){
+
+    repsObjetivo=parseInt(document.getElementById("reps").value);
+
+    seriesObjetivo=parseInt(document.getElementById("series").value);
+
+    descansoObjetivo=parseInt(document.getElementById("descanso").value);
+
+    serie=1;
+    rep=0;
+    descanso=0;
+
+    inicioRutina=new Date();
+
+    rutinaIniciada=true;
+    pausado=false;
+    enDescanso=false;
+
+    beep(1200,200);
+    vibrar(150);
+
+    hablar("Rutina iniciada");
+
+    actualizarPantalla();
+}
+
+function sumarRep(){
+
+    if(!rutinaIniciada || enDescanso || pausado) return;
+
+    rep++;
+
+    beep(900,90);
+    vibrar(60);
+
+    if(rep===repsObjetivo-1)
+        hablar("Última repetición");
+
+    actualizarPantalla();
+
+    if(rep>=repsObjetivo){
+
+        terminarSerie();
+    }
+}
+
+function terminarSerie(){
+
+    beep(1400,180);
+
+    if(serie>=seriesObjetivo){
+
+        finalizarRutina();
+        return;
+    }
+
+    iniciarDescanso();
+}
+
+function iniciarDescanso(){
+
+    enDescanso=true;
+
+    descanso=descansoObjetivo;
+
+    hablar("Descanso");
+
+    actualizarPantalla();
+
+    timer=setInterval(()=>{
+
+        if(pausado) return;
+
+        descanso--;
+
+        actualizarPantalla();
+
+        if(descanso===10)
+            hablar("Diez segundos");
+
+        if(descanso===3)
+            hablar("Prepárese");
+
+        if(descanso<=0){
+
+            clearInterval(timer);
+
+            serie++;
+            rep=0;
+
+            enDescanso=false;
+
+            hablar("Serie " + serie);
+
+            actualizarPantalla();
+        }
+
+    },1000);
+}
+
+function pausar(){
+
+    pausado=!pausado;
+
+    if(pausado){
+
+        estado("PAUSADO","status");
+
+    }else{
+
+        actualizarPantalla();
+    }
+}
+
+function reiniciar(){
+
+    clearInterval(timer);
+
+    serie=1;
+    rep=0;
+    descanso=0;
+
+    rutinaIniciada=false;
+    pausado=false;
+    enDescanso=false;
+
+    actualizarPantalla();
+    ultimoMovimiento = 0;
+}
+
+function finalizarRutina(){
+
+    clearInterval(timer);
+
+    rutinaIniciada=false;
+    enDescanso=false;
+
+    estado("RUTINA COMPLETADA","status finalizado");
+
+    document.getElementById("contador").innerText="OK";
+
+    hablar("Excelente trabajo");
+
+    guardarHistorial();
+
+    actualizarKPI();
+}
+
+function guardarHistorial(){
+
+    const fin = new Date();
+
+    const minutos =
+        inicioRutina ?
+        Math.round((fin - inicioRutina)/60000):0;
+
+    const registro = {
+
+        fecha:fin.toLocaleString(),
+        rutina:document.getElementById("rutina").value,
+        series:seriesObjetivo,
+        reps:repsObjetivo,
+        descanso:descansoObjetivo,
+        duracion:minutos
+    };
+
+    let historial =
+        JSON.parse(localStorage.getItem("damxi_historial")||"[]");
+
+    historial.unshift(registro);
+
+    historial=historial.slice(0,30);
+
+    localStorage.setItem(
+        "damxi_historial",
+        JSON.stringify(historial)
+    );
+
+    mostrarHistorial();
+}
+
+function mostrarHistorial(){
+
+    const historial =
+        JSON.parse(localStorage.getItem("damxi_historial")||"[]");
+
+    const div = document.getElementById("historial");
+
+    if(historial.length===0){
+
+        div.innerHTML=
+            "<div class='small'>Sin registros.</div>";
+
+        return;
+    }
+
+    div.innerHTML = historial.map(h=>`
+
+        <div>
+            <b>${h.fecha}</b><br>
+
+            Rutina: ${h.rutina}<br>
+
+            ${h.series}x${h.reps}
+            · Desc ${h.descanso}s
+            · ${h.duracion} min
+        </div>
+
+        <hr>
+
+    `).join("");
+}
+
+function actualizarKPI(){
+
+    const historial =
+        JSON.parse(localStorage.getItem("damxi_historial")||"[]");
+
+    let totalRutinas = historial.length;
+    let totalSeries = 0;
+    let totalReps = 0;
+    let totalMin = 0;
+
+    historial.forEach(h=>{
+
+        totalSeries += h.series;
+        totalReps += h.series * h.reps;
+        totalMin += h.duracion;
+    });
+
+    document.getElementById("kpiRutinas").innerText =
+        totalRutinas;
+
+    document.getElementById("kpiSeries").innerText =
+        totalSeries;
+
+    document.getElementById("kpiReps").innerText =
+        totalReps;
+
+    document.getElementById("kpiMinutos").innerText =
+        totalMin;
+}
+
+function borrarHistorial(){
+
+    localStorage.removeItem("damxi_historial");
+
+    mostrarHistorial();
+    actualizarKPI();
+}
+
+function exportarHistorial(){
+
+    const historial =
+        localStorage.getItem("damxi_historial") || "[]";
+
+    const blob =
+        new Blob([historial], {type:"application/json"});
+
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+
+    a.href=url;
+    a.download="damxi_gym_historial.json";
+
+    a.click();
+
+    URL.revokeObjectURL(url);
+}
+
+if("serviceWorker" in navigator){
+
+    navigator.serviceWorker
+        .register("service-worker.js")
+        .then(()=>console.log("SW OK"));
+}
+
+function activarSensor(){
+
+    if(document.getElementById("smartMode").value !== "on"){
+        document.getElementById("sensorEstado").innerText =
+            "Seleccione SMART MODE Activado";
+        return;
+    }
+
+    if(typeof DeviceMotionEvent !== "undefined" &&
+       typeof DeviceMotionEvent.requestPermission === "function"){
+
+        DeviceMotionEvent.requestPermission()
+            .then(permissionState => {
+                if(permissionState === "granted"){
+                    iniciarLecturaMovimiento();
+                }else{
+                    document.getElementById("sensorEstado").innerText =
+                        "Permiso de sensor denegado";
+                }
+            })
+            .catch(error => {
+                document.getElementById("sensorEstado").innerText =
+                    "Error solicitando sensor";
+                console.log(error);
+            });
+
+    }else{
+        iniciarLecturaMovimiento();
+    }
+}
+
+function iniciarLecturaMovimiento(){
+
+    if(sensorActivo) return;
+
+    sensorActivo = true;
+
+    document.getElementById("sensorEstado").innerText =
+        "Sensor activo";
+
+    window.addEventListener("devicemotion", detectarMovimiento);
+}
+
+function detectarMovimiento(event){
+
+    const acc = event.accelerationIncludingGravity;
+
+    if(!acc){
+        document.getElementById("sensorEstado").innerText =
+            "No llegan datos del acelerómetro";
+        return;
+    }
+
+    const x = acc.x || 0;
+    const y = acc.y || 0;
+    const z = acc.z || 0;
+
+    const magnitud = Math.sqrt(x*x + y*y + z*z);
+
+    document.getElementById("sensorDebug").innerText =
+        "X: " + x.toFixed(1) +
+        " | Y: " + y.toFixed(1) +
+        " | Z: " + z.toFixed(1) +
+        " | M: " + magnitud.toFixed(1);
+
+    if(!sensorActivo) return;
+    if(document.getElementById("smartMode").value !== "on") return;
+    if(!rutinaIniciada || enDescanso || pausado) return;
+
+    const umbral = parseFloat(
+        document.getElementById("sensibilidad").value
+    );
+
+    const ahora = Date.now();
+
+    if(magnitud > umbral &&
+       ahora - ultimoMovimiento > tiempoBloqueoMovimiento){
+
+        ultimoMovimiento = ahora;
+
+        sumarRep();
+
+        document.getElementById("sensorEstado").innerText =
+            "Movimiento detectado: " + magnitud.toFixed(1);
+    }
+}
+
+</script>
+
+</body>
+</html>
