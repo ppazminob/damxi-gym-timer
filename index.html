@@ -271,50 +271,18 @@ Coach · KPI · Historial · Activación
         </select>
 
         <label>Sensibilidad</label>
+
         <select id="sensibilidad">
-            <label>Tiempo bloqueo</label>
-
-            <select id="bloqueo">
-
-                <option value="400">
-                    Muy rápido
-                </option>
-
-                <option value="700" selected>
-                    Normal
-                </option>
-
-                <option value="1000">
-                    Seguro
-                </option>
-
-            </select>
-
-            <button class="pro" onclick="iniciarCalibracion()">
-                CALIBRAR SENSOR
-            </button>            
-
-            <option value="10">
-                ALTO
-            </option>
-
-            <option value="12">
-                MEDIO-ALTO
-            </option>
-
-            <option value="14" selected>
-                MEDIO
-            </option>
-
-            <option value="16">
-                MEDIO-BAJO
-            </option>
-
-            <option value="18">
-                BAJO
-            </option>
-
+            <option value="10">ALTO</option>
+            <option value="12">MEDIO-ALTO</option>
+            <option value="14" selected>MEDIO</option>
+            <option value="16">MEDIO-BAJO</option>
+            <option value="18">BAJO</option>
         </select>
+
+        <div class="small" id="sensibilidadActual">
+            Sensibilidad actual: MEDIO (14)
+        </div>
 
         <button class="pro" onclick="activarSensor()">
             ACTIVAR SENSOR
@@ -981,14 +949,13 @@ function detectarMovimiento(event){
     );
 
     const ahora = Date.now();
+    
+    document.getElementById("sensorEstado").innerText =
+        "M=" + magnitud.toFixed(1) + " / Umbral=" + umbral;
 
     if(
-
-        magnitud > umbral &&
-
-        ahora - ultimoMovimiento >
-        tiempoBloqueoMovimiento
-
+        magnitud >= umbral &&
+        ahora - ultimoMovimiento > tiempoBloqueoMovimiento
     ){
 
         ultimoMovimiento = ahora;
@@ -1002,6 +969,18 @@ function detectarMovimiento(event){
 
         vibrar(50);
     }
+}
+
+function aplicarSensibilidad(valor, texto){
+
+    const combo = document.getElementById("sensibilidad");
+
+    combo.value = String(valor);
+
+    document.getElementById("sensibilidadActual").innerText =
+        "Sensibilidad actual: " + texto + " (" + valor + ")";
+
+    combo.dispatchEvent(new Event("change"));
 }
 
 function iniciarCalibracion(){
