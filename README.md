@@ -1,3 +1,5 @@
 # damxi-gym-timer
 Control Rutinas
-Indica las 4 Series de 12, 10 o 15 repeticiones, con descanso en cada serie. 
+Indica las n Series de m repeticiones,
+con descanso en cada serie. 
+(n = 3, 4; m = 10, 12, 15)
