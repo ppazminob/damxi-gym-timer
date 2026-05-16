@@ -957,50 +957,12 @@ function detectarMovimiento(event){
     if(calibrando){
 
         muestrasCalibracion.push(magnitud);
+
         document.getElementById("sensorEstado").innerText =
-            "CALIBRANDO... " + muestrasCalibracion.length + "/25";
-
-        if(muestrasCalibracion.length >= 25){
-
-            calibrando = false;
-
-            const promedio =
-
-                muestrasCalibracion.reduce(
-                    (a,b)=>a+b,0
-                ) / muestrasCalibracion.length;
-
-            let sugerido = 14;
-
-            if(promedio < 12)
-                sugerido = 10;
-
-            else if(promedio < 15)
-                sugerido = 12;
-
-            else if(promedio < 18)
-                sugerido = 14;
-
-            else if(promedio < 21)
-                sugerido = 16;
-
-            else
-                sugerido = 18;
-
-            document.getElementById("sensibilidad").value =
-                sugerido;
-
-            document.getElementById("sensorEstado").innerText =
-
-                "Calibrado → " + sugerido;
-
-            hablar("Sensor calibrado");
-        }
+            "CALIBRANDO... M=" + magnitud.toFixed(1);
 
         return;
     }
-
-    // SMART MODE
 
     if(!sensorActivo) return;
 
@@ -1044,14 +1006,65 @@ function detectarMovimiento(event){
 
 function iniciarCalibracion(){
 
-    calibrando = true;
+    if(!sensorActivo){
+        document.getElementById("sensorEstado").innerText =
+            "Primero active el sensor";
+        return;
+    }
 
+    calibrando = true;
     muestrasCalibracion = [];
 
     document.getElementById("sensorEstado").innerText =
-        "CALIBRANDO... haga 5 reps";
+        "CALIBRANDO 8s... haga reps normales";
 
-    hablar("Haga cinco repeticiones normales");
+    hablar("Calibrando. Haga repeticiones normales durante ocho segundos");
+
+    setTimeout(()=>{
+
+        if(muestrasCalibracion.length === 0){
+            calibrando = false;
+            document.getElementById("sensorEstado").innerText =
+                "No hubo muestras de sensor";
+            return;
+        }
+
+        calibrando = false;
+
+        const maximo = Math.max(...muestrasCalibracion);
+
+        let sugerido = 14;
+        let texto = "MEDIO";
+
+        if(maximo < 12){
+            sugerido = 10;
+            texto = "ALTO";
+        }
+        else if(maximo < 15){
+            sugerido = 12;
+            texto = "MEDIO-ALTO";
+        }
+        else if(maximo < 18){
+            sugerido = 14;
+            texto = "MEDIO";
+        }
+        else if(maximo < 21){
+            sugerido = 16;
+            texto = "MEDIO-BAJO";
+        }
+        else{
+            sugerido = 18;
+            texto = "BAJO";
+        }
+
+        document.getElementById("sensibilidad").value = String(sugerido);
+
+        document.getElementById("sensorEstado").innerText =
+            "Calibrado → " + texto + " (" + sugerido + ")";
+
+        hablar("Sensor calibrado en " + texto);
+
+    },8000);
 }
 
 </script>
