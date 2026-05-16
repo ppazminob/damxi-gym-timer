@@ -1057,12 +1057,24 @@ function iniciarCalibracion(){
             texto = "BAJO";
         }
 
-        document.getElementById("sensibilidad").value = String(sugerido);
+        const comboSensibilidad = document.getElementById("sensibilidad");
+        comboSensibilidad.value = String(sugerido);
+
+        if(comboSensibilidad.value !== String(sugerido)){
+            document.getElementById("sensorEstado").innerText =
+                "Calibrado, pero no existe opción: " + sugerido;
+        }
 
         document.getElementById("sensorEstado").innerText =
             "Calibrado → " + texto + " (" + sugerido + ")";
 
         hablar("Sensor calibrado en " + texto);
+        document.getElementById("smartMode").value = "on";
+        sensorActivo = true;
+        ultimoMovimiento = 0;
+
+        document.getElementById("sensorEstado").innerText =
+            "Calibrado → " + texto + " (" + sugerido + ") - Sensor listo";        
 
     },8000);
 }
