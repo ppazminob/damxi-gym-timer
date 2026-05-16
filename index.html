@@ -957,8 +957,10 @@ function detectarMovimiento(event){
     if(calibrando){
 
         muestrasCalibracion.push(magnitud);
+        document.getElementById("sensorEstado").innerText =
+            "CALIBRANDO... " + muestrasCalibracion.length + "/25";
 
-        if(muestrasCalibracion.length >= 50){
+        if(muestrasCalibracion.length >= 25){
 
             calibrando = false;
 
