@@ -271,19 +271,32 @@ Coach · KPI · Historial · Activación
         </select>
 
         <label>Sensibilidad</label>
-
         <select id="sensibilidad">
             <option value="10">ALTO</option>
-            <option value="12">MEDIO-ALTO</option>
-            <option value="14" selected>MEDIO</option>
+            <option value="12" selected>MEDIO-ALTO</option>
+            <option value="14">MEDIO</option>
             <option value="16">MEDIO-BAJO</option>
             <option value="18">BAJO</option>
         </select>
+        <label>Bloqueo anti doble conteo</label>
+        <select id="bloqueo">
+            <option value="500">Rápido</option>
+            <option value="700" selected>Normal</option>
+            <option value="1000">Seguro</option>
+        </select>
+        <label>Suavizado</label>
+        <select id="suavizadoNivel">
+            <option value="0.20">Suave</option>
+            <option value="0.35" selected>Normal</option>
+            <option value="0.50">Directo</option>
+        </select>
 
+        <div class="small" id="sensorDebug">
+            M=0 / Umbral=0
+        </div>                
         <div class="small" id="sensibilidadActual">
             Sensibilidad actual: MEDIO (14)
         </div>
-
         <button class="pro" onclick="activarSensor()">
             ACTIVAR SENSOR
         </button>
@@ -409,6 +422,7 @@ let calibrando = false;
 let muestrasCalibracion = [];
 
 let suavizado = 0;
+
 
 window.onload = function(){
 
@@ -888,10 +902,8 @@ function detectarMovimiento(event){
     const acc = event.accelerationIncludingGravity;
 
     if(!acc){
-
         document.getElementById("sensorEstado").innerText =
-            "No llegan datos sensor";
-
+            "No llegan datos del sensor";
         return;
     }
 
@@ -899,75 +911,48 @@ function detectarMovimiento(event){
     const y = acc.y || 0;
     const z = acc.z || 0;
 
-    const magnitudRaw =
-        Math.sqrt(x*x + y*y + z*z);
+    const magnitudRaw = Math.sqrt(x*x + y*y + z*z);
 
-    // SUAVIZADO
+    const factor = parseFloat(
+        document.getElementById("suavizadoNivel").value
+    );
 
-    suavizado =
-        suavizado * 0.7 +
-        magnitudRaw * 0.3;
+    suavizado = suavizado * (1 - factor) + magnitudRaw * factor;
 
     const magnitud = suavizado;
-
-    document.getElementById("sensorDebug").innerText =
-
-        "X:" + x.toFixed(1) +
-
-        " Y:" + y.toFixed(1) +
-
-        " Z:" + z.toFixed(1) +
-
-        " M:" + magnitud.toFixed(1);
-
-    // CALIBRACIÓN
-
-    if(calibrando){
-
-        muestrasCalibracion.push(magnitud);
-
-        document.getElementById("sensorEstado").innerText =
-            "CALIBRANDO... M=" + magnitud.toFixed(1);
-
-        return;
-    }
-
-    if(!sensorActivo) return;
-
-    if(document.getElementById("smartMode").value !== "on")
-        return;
-
-    if(!rutinaIniciada || enDescanso || pausado)
-        return;
 
     const umbral = parseFloat(
         document.getElementById("sensibilidad").value
     );
 
-    tiempoBloqueoMovimiento = parseInt(
+    document.getElementById("sensorDebug").innerText =
+        "M=" + magnitud.toFixed(1) +
+        " / Umbral=" + umbral;
+
+    if(!sensorActivo) return;
+
+    if(document.getElementById("smartMode").value !== "on") return;
+
+    if(!rutinaIniciada || enDescanso || pausado) return;
+
+    const bloqueo = parseInt(
         document.getElementById("bloqueo").value
     );
 
     const ahora = Date.now();
-    
-    document.getElementById("sensorEstado").innerText =
-        "M=" + magnitud.toFixed(1) + " / Umbral=" + umbral;
 
     if(
         magnitud >= umbral &&
-        ahora - ultimoMovimiento > tiempoBloqueoMovimiento
+        ahora - ultimoMovimiento > bloqueo
     ){
-
         ultimoMovimiento = ahora;
 
         sumarRep();
 
         document.getElementById("sensorEstado").innerText =
+            "REP detectada M=" + magnitud.toFixed(1);
 
-            "REP detectada → " +
-            magnitud.toFixed(1);
-
-        vibrar(50);
+        vibrar(60);
     }
 }
 
