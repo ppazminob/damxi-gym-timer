@@ -140,6 +140,40 @@ button{
     margin-top:6px;
 }
 
+.foco{
+    width:28px;
+    height:28px;
+    border-radius:50%;
+    margin:0 auto 12px auto;
+    box-shadow:0 0 12px rgba(255,255,255,.4);
+}
+
+.foco-off{
+    background:#334155;
+}
+
+.foco-verde{
+    background:#22c55e;
+    animation:blinkFast .35s infinite;
+    box-shadow:0 0 18px #22c55e;
+}
+
+.foco-rojo{
+    background:#ef4444;
+    animation:blinkSlow 1s infinite;
+    box-shadow:0 0 18px #ef4444;
+}
+
+@keyframes blinkFast{
+    0%,100%{opacity:1;}
+    50%{opacity:.25;}
+}
+
+@keyframes blinkSlow{
+    0%,100%{opacity:1;}
+    50%{opacity:.35;}
+}
+
 </style>
 </head>
 
@@ -226,6 +260,8 @@ Coach · KPI · Historial · Activación
     </div>
 
     <div class="card">
+
+        <div id="focoRutina" class="foco foco-off"></div>
 
         <div id="estado" class="status">
             LISTO
@@ -423,6 +459,9 @@ let muestrasCalibracion = [];
 
 let suavizado = 0;
 
+let cuentaInicial = false;
+let contadorInicio = 10;
+let timerInicio = null;
 
 window.onload = function(){
 
@@ -576,12 +615,27 @@ function actualizarPantalla(){
     }
 }
 
+function cambiarFoco(modo){
+
+    const foco = document.getElementById("focoRutina");
+
+    foco.className = "foco";
+
+    if(modo === "verde"){
+        foco.classList.add("foco-verde");
+    }
+    else if(modo === "rojo"){
+        foco.classList.add("foco-rojo");
+    }
+    else{
+        foco.classList.add("foco-off");
+    }
+}
+
 function iniciar(){
 
     repsObjetivo=parseInt(document.getElementById("reps").value);
-
     seriesObjetivo=parseInt(document.getElementById("series").value);
-
     descansoObjetivo=parseInt(document.getElementById("descanso").value);
 
     serie=1;
@@ -590,16 +644,53 @@ function iniciar(){
 
     inicioRutina=new Date();
 
-    rutinaIniciada=true;
+    rutinaIniciada=false;
     pausado=false;
     enDescanso=false;
 
-    beep(1200,200);
-    vibrar(150);
+    cuentaInicial = true;
+    contadorInicio = 10;
 
-    hablar("Rutina iniciada");
+    cambiarFoco("rojo");
 
-    actualizarPantalla();
+    estado("PREPARACIÓN","status descanso");
+    document.getElementById("serieActual").innerText = "1";
+    document.getElementById("contador").innerText = contadorInicio;
+    document.getElementById("respiracion").innerText = "PREPÁRESE";
+
+    hablar("Iniciando en diez segundos");
+
+    clearInterval(timerInicio);
+
+    timerInicio = setInterval(()=>{
+
+        contadorInicio--;
+
+        document.getElementById("contador").innerText = contadorInicio;
+
+        if(contadorInicio === 3){
+            hablar("Prepárese");
+        }
+
+        if(contadorInicio <= 0){
+
+            clearInterval(timerInicio);
+            timerInicio = null;
+
+            cuentaInicial = false;
+            rutinaIniciada = true;
+
+            cambiarFoco("verde");
+
+            beep(1200,200);
+            vibrar(150);
+
+            hablar("Comienza la serie uno");
+
+            actualizarPantalla();
+        }
+
+    },1000);
 }
 
 function sumarRep(){
@@ -639,6 +730,8 @@ function iniciarDescanso(){
 
     enDescanso=true;
 
+    cambiarFoco("rojo");
+
     descanso=descansoObjetivo;
 
     hablar("Descanso");
@@ -668,7 +761,9 @@ function iniciarDescanso(){
 
             enDescanso=false;
 
-            hablar("Serie " + serie);
+            cambiarFoco("verde");
+
+            hablar("Comienza la serie " + serie);
 
             actualizarPantalla();
         }
@@ -704,6 +799,13 @@ function reiniciar(){
 
     actualizarPantalla();
     ultimoMovimiento = 0;
+
+    clearInterval(timerInicio);
+    timerInicio = null;
+    cuentaInicial = false;
+    contadorInicio = 10;
+    cambiarFoco("off");
+    
 }
 
 function finalizarRutina(){
@@ -722,6 +824,8 @@ function finalizarRutina(){
     guardarHistorial();
 
     actualizarKPI();
+
+    cambiarFoco("off");
 }
 
 function guardarHistorial(){
