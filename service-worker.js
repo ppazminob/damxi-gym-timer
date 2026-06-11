@@ -1,4 +1,4 @@
-const CACHE_NAME = "damxi-gym-pro-v6-https";
+const CACHE_NAME = "instructor-virtual-pro-v6-https";
 
 const urlsToCache = [
   "./",
